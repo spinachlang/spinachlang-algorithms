@@ -1,0 +1,9 @@
+# Deutsch’s Algorithm
+
+1 -> X
+[0, 1] -> H
+
+# Example oracle: f(x) = x
+1 -> CX(0)
+
+0 -> H | M
