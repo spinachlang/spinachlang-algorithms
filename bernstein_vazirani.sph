@@ -1,0 +1,16 @@
+# Bernstein-Vazirani Algorithm  (hidden string s = 101)
+# Recovers the full secret bitstring in ONE oracle query.
+# Each input qubit's lifecycle: H -> FCX if s[i]=1 -> H -> M
+
+inp0 : 0   # s[0] = 1
+inp1 : 1   # s[1] = 0  (no oracle CX; H.H = I so always measures 0)
+inp2 : 2   # s[2] = 1
+anc  : 3
+
+oracle_bit : H | FCX(anc) | H    # oracle layer for a set bit: s[i] = 1
+
+anc  -> X | H                  # ancilla in |->
+inp0 -> oracle_bit             # bit 0 of s: included in oracle
+inp1 -> H | H                  # bit 1 of s: skipped (H.H = I -> measures 0)
+inp2 -> oracle_bit             # bit 2 of s: included in oracle
+[inp0, inp1, inp2] -> M        # measure input qubits only — skip ancilla

@@ -1,0 +1,13 @@
+# Quantum Half-Adder  (1 + 1 = 10 in binary)
+# Inputs:  a = q[0] = |1>,  b = q[1] = |1>
+# Outputs: sum in b (q[1]),  carry in carry (q[2])
+# Result:  b = 0,  carry = 1   =>   1 + 1 = 10 in binary
+
+a     : 0
+b     : 1
+carry : 2
+
+[a, b] -> X             # initialise both inputs to |1>
+carry -> CCX(a, b) | M # carry = a AND b (Toffoli), then measure carry
+b     -> CX(a) | M    # sum   = a XOR b (CNOT),    then measure sum
+a     -> M              # measure a (unchanged)

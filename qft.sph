@@ -1,0 +1,15 @@
+# Quantum Fourier Transform  (3-qubit)
+# Maps computational basis states to the frequency domain.
+# Angles in half-turns: 0.5 = pi/2 phase (S-gate), 0.25 = pi/4 phase (T-gate).
+
+# Stage q0: H then controlled-phase from q1 and q2
+q 0 -> H | CU1(0.5, q 1) | CU1(0.25, q 2)  # control from q1 and q2, target q0
+
+# Stage q1: H then controlled-phase from q2
+q 1 -> H | CU1(0.5, q 2)  # control from q2, target q1
+
+# Stage q2: H only (no more control qubits)
+q 2 -> H
+
+# Bit-reversal permutation
+q 0 -> SWAP(q 2)

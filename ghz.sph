@@ -1,0 +1,7 @@
+# GHZ State (Greenberger-Horne-Zeilinger)
+# Three-qubit maximally entangled state: (|000> + |111>) / sqrt(2)
+# q N syntax: no declarations needed, explicit qubit index
+
+q 0 -> H | FCX(q 1) | FCX(q 2)
+
+* -> M

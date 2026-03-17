@@ -1,4 +1,4 @@
 # Entanglement
 
-0 -> H | FCX(1)
+q 0 -> H | FCX(q 1)
 * -> M

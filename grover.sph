@@ -1,0 +1,19 @@
+# Grover's Search Algorithm  (2 qubits, target state |11>)
+# Finds the marked state with quadratic speedup.
+# One iteration is optimal for N=4, M=1: P(|11>) = 1.0.
+
+# Diffuser pipeline (diffuse_out is just diffuse_in in reverse)
+diffuse_in  : H | X
+
+# Initialise uniform superposition
+[q 0, q 1] -> H
+
+# Oracle: phase flip on |11> via CZ (CZ is symmetric)
+q 0 -> CZ(q 1)
+
+# Diffuser: inversion about the average amplitude
+[q 0, q 1] -> diffuse_in
+q 0 -> CZ(q 1)
+[q 0, q 1] -> diffuse_in <-
+
+* -> M

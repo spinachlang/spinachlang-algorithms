@@ -1,0 +1,16 @@
+# Deutsch-Jozsa Algorithm  (n = 2 input qubits)
+# ONE query determines: constant (result 00) vs balanced (result != 00)
+# Oracle: balanced  f(x0, x1) = x0 XOR x1
+#
+# Each input qubit's full lifecycle is one pipeline:
+#   H (superposition) -> FCX(anc) (oracle phase kickback) -> H (interference) -> M
+
+inp0 : 0
+inp1 : 1
+anc  : 2
+oracle_bit : H | FCX(anc) | H
+
+anc  -> X | H                  # ancilla in |-> for phase kickback
+inp0 -> oracle_bit # inp0 through superposition -> oracle -> decode -> measure
+inp1 -> oracle_bit # inp1 through superposition -> oracle -> decode -> measure
+[inp0, inp1] -> M        # measure both input qubits; ancilla is ignored

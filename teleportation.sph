@@ -1,0 +1,24 @@
+# Quantum Teleportation
+# Teleports the state of msg (q[0]) to bob (q[2]) via a shared Bell pair.
+#
+# Full protocol:
+#   1. msg prepared in |+>  (state to send)
+#   2. alice and bob share Bell pair: alice -> H | FCX(2)
+#   3. Bell measurement on msg+alice: msg -> FCX(1) | H, then measure both
+#   4. Bob applies X if alice bit=1, Z if msg bit=1  (classical feedback)
+#
+# Step 4 uses individual-bit conditions valid in Spinach but not QASM 2.0.
+# Use  spinachlang -l json teleportation.sph  for the full corrected circuit.
+
+msg   : q 0
+alice : q 1
+bob   : q 2
+
+# Bell pair — alice's entire prep in one pipeline
+alice -> H | FCX(q 2)
+
+# Bell measurement — all of msg's operations in one pipeline
+msg -> H | FCX(q 1) | H
+
+# Measure both classical wires (bob's corrections omitted for QASM export)
+[msg, alice] -> M

@@ -1,0 +1,14 @@
+# Superdense Coding
+# Sends 2 classical bits ("11") using only 1 qubit transmission.
+# alice (q[0]) and bob (q[1]) first share a Bell pair.
+#
+# Encoding table (alice's gate on her qubit):
+#   "00" -> I      "01" -> X
+#   "10" -> Z      "11" -> Z | X   (= iY up to global phase)
+#
+# Bob decodes by inverting the Bell circuit, then measuring.
+
+alice : q 0
+bob   : q 1
+alice -> H | FCX(bob) | Z | X | FCX(bob) | H
+* -> M

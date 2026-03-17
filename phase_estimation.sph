@@ -1,0 +1,12 @@
+# Quantum Phase Estimation  (1 estimation qubit, Z gate)
+# Estimates eigenphase of Z for eigenstate |1>: Z|1> = e^{i*pi}|1>
+#
+# 1-qubit inverse QFT is simply H, so the whole QPE circuit is one pipeline:
+#   H -> controlled-Z -> H -> measure
+# Outcome |1> encodes phase = 1/2 turn = pi  (correct)
+
+est : 0
+eig : 1
+
+eig -> X                        # prepare eigenstate |1>
+est -> H | CZ(eig) | H | M  # superpose, apply controlled-U, IQFT, measure

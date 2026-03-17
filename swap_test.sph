@@ -1,0 +1,13 @@
+# Swap Test  (Quantum State Fidelity)
+# Estimates |<psi|phi>|^2 via P(anc=0) = (1 + |<psi|phi>|^2) / 2.
+# Here |psi> = |phi> = |+>,  so overlap = 1 and P(anc=0) = 1.
+#
+# Anc sandwiches the CSWAP with two H gates; psi chains its prep and the swap.
+
+anc : 0
+psi : 1
+phi : 2
+
+[phi, anc] -> H                         # prepare |phi> = |+>
+psi -> H | CSWAP(anc, phi)         # prepare |psi> = |+>, then controlled-swap
+anc -> H | M                   # second anc H (after CSWAP), then measure
