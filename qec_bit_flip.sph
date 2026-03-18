@@ -1,0 +1,148 @@
+# ============================================================
+# 3-Qubit Bit-Flip Quantum Error Correction Code
+# ============================================================
+#
+# The simplest quantum error-correcting code: protects one
+# logical qubit against a single bit-flip (X) error on any
+# of the three physical qubits.
+#
+# This file is a full Spinach syntax showcase:
+#   Named instructions    encode, synmeas0, synmeas1
+#   Reverse pipeline      data -> encode <-
+#   List targets          [anc0, anc1] -> M
+#   Wildcard              * -> BARRIER  /  * -> M
+#   Classical bit logic   NOT, AND, OR
+#   Conditional (if)      qubit -> X if bit
+#   Conditional (if-else) qubit -> S if bit else T
+#   BARRIER               separates each protocol stage
+#
+# Classical bit ops (stages 5-8) exceed QASM 2.0; the .qasm companion
+# captures stages 1-4 only.  For the full corrected circuit use:
+#   spinachlang -l json qec_bit_flip.sph
+#
+# Qubit layout:
+#   data  q[0]  logical qubit to protect (prepared in |+>)
+#   rep1  q[1]  first  redundant physical qubit
+#   rep2  q[2]  second redundant physical qubit
+#   anc0  q[3]  ancilla: syndrome of data XOR rep1
+#   anc1  q[4]  ancilla: syndrome of rep1 XOR rep2
+#
+# Syndrome truth table:
+#   syn0  syn1 | error location
+#    0     0   | none
+#    1     0   | data      -> corr0
+#    1     1   | rep1      -> corr1
+#    0     1   | rep2      -> corr2
+# ============================================================
+
+# ── Qubit declarations ──────────────────────────────────────
+data  : q 0
+rep1  : q 1
+rep2  : q 2
+anc0  : q 3
+anc1  : q 4
+
+# ── Classical bit declarations ──────────────────────────────
+# Syndrome bits auto-receive the measurement of q[3] / q[4]
+syn0   : b 3
+syn1   : b 4
+# Scratch bits for classical syndrome decode
+nots0  : b 5
+nots1  : b 6
+# Per-qubit correction flags
+corr0  : b 7
+corr1  : b 8
+corr2  : b 9
+# Diagnostic: 1 if any syndrome fired
+anyerr : b 10
+
+# ── Named instructions ──────────────────────────────────────
+# FCX(q): action-target becomes the CX control, q is the target
+# encode:    copy data into rep1 and rep2 via two CNOTs
+encode   : FCX(rep1) | FCX(rep2)
+# synmeas0:  parity of data XOR rep1  (applied to anc0)
+synmeas0 : CX(data) | CX(rep1)
+# synmeas1:  parity of rep1 XOR rep2  (applied to anc1)
+synmeas1 : CX(rep1) | CX(rep2)
+
+# ============================================================
+# STAGE 1 — Prepare logical |+> on the data qubit
+# ============================================================
+data -> H
+
+# ============================================================
+# STAGE 2 — Encode: replicate data into the two redundant qubits
+#   |+, 0, 0> -> (|000> + |111>) / sqrt(2)
+# ============================================================
+data -> encode
+
+* -> BARRIER
+
+# ============================================================
+# STAGE 3 — Noise channel: inject a bit-flip error on rep1
+#   Simulates a physical X fault on the middle qubit
+# ============================================================
+rep1 -> X
+
+* -> BARRIER
+
+# ============================================================
+# STAGE 4 — Syndrome measurement
+#   Each ancilla accumulates the parity of a neighbouring pair
+#   without disturbing the logical state
+# ============================================================
+anc0 -> synmeas0
+anc1 -> synmeas1
+
+[anc0, anc1] -> M
+
+* -> BARRIER
+
+# ============================================================
+# STAGE 5 — Classical syndrome decode  (bit arithmetic)
+#   Compute which qubit was flipped from the two syndrome bits
+# ============================================================
+nots0  -> NOT(syn0)
+nots1  -> NOT(syn1)
+
+corr0  -> AND(syn0, nots1)     # syn0=1 AND syn1=0  =>  data error
+corr1  -> AND(syn0, syn1)      # syn0=1 AND syn1=1  =>  rep1 error
+corr2  -> AND(nots0, syn1)     # syn0=0 AND syn1=1  =>  rep2 error
+
+anyerr -> OR(syn0, syn1)       # any syndrome bit fired
+
+* -> BARRIER
+
+# ============================================================
+# STAGE 6 — Feedforward correction  (classically conditioned)
+#   Each qubit gets an X only when its correction flag is set
+# ============================================================
+data -> X if corr0
+rep1 -> X if corr1
+rep2 -> X if corr2
+
+* -> BARRIER
+
+# ============================================================
+# STAGE 7 — Diagnostic phase tag  (if-else showcase)
+#   Apply S to data if an error was detected and corrected,
+#   or T if the circuit ran cleanly.
+#   Both are phase gates; the tag is visible in the phase basis.
+# ============================================================
+data -> S if anyerr else T
+
+* -> BARRIER
+
+# ============================================================
+# STAGE 8 — Decode: reverse the encoding to recover 1 qubit
+#   encode <- is the adjoint: FCX(rep2) | FCX(rep1)
+#   FCX is self-inverse, so this correctly uncomputes the
+#   encoding and disentangles rep1 / rep2.
+# ============================================================
+data -> encode <-
+
+# ============================================================
+# STAGE 9 — Final measurement of all physical qubits
+# ============================================================
+* -> M
+
