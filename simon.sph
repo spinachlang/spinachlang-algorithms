@@ -1,0 +1,36 @@
+# Simon's Algorithm  (n = 2, hidden string s = 11)
+# ─────────────────────────────────────────────────────────────────────────────
+# Problem: given an oracle for f : {0,1}^n → {0,1}^n that is either 1-to-1
+#          or 2-to-1 with secret period s (f(x) = f(x XOR s) for all x),
+#          find s using only O(n) oracle calls (classical needs O(2^(n/2))).
+#
+# Oracle used here  (n=2, s=11):
+#   f(x) = parity(x) = x[0] XOR x[1], encoded in a single ancilla qubit.
+#   Verification: f(00)=0=f(11) ✓   f(01)=1=f(10) ✓
+#
+# Circuit steps:
+#   1. Hadamard both input qubits  →  uniform superposition over all inputs
+#   2. Oracle: CNOT inp0→anc, CNOT inp1→anc  (compute f into ancilla register)
+#   3. Hadamard both input qubits again  (Fourier sampling step)
+#   4. Measure input register  →  result y satisfies y · s = 0 (mod 2)
+#      Running the circuit twice yields y ∈ {00, 11},
+#      giving the two linear equations that uniquely identify s = 11.
+# ─────────────────────────────────────────────────────────────────────────────
+
+inp0 : 0    # input qubit 0
+inp1 : 1    # input qubit 1
+anc  : 2    # ancilla (output register, one bit suffices for this oracle)
+
+# ── Step 1: uniform superposition ───────────────────────────────────────────
+[inp0, inp1] -> H
+
+# ── Step 2: oracle  f(x) = x[0] XOR x[1] ───────────────────────────────────
+inp0 -> FCX(anc)        # anc ^= inp0  (inp0 is control, anc is target)
+inp1 -> FCX(anc)        # anc ^= inp1  (inp1 is control, anc is target)
+
+# ── Step 3: Hadamard on input register (Fourier sampling) ───────────────────
+[inp0, inp1] -> H
+
+# ── Step 4: measure input qubits ─────────────────────────────────────────────
+[inp0, inp1] -> M
+
